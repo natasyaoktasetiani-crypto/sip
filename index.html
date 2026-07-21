@@ -1037,7 +1037,9 @@
         }
       });
 
-      document.querySelector('#current-year').textContent = new Date().getFullYear();
+      document.querySelectorAll('.current-year').forEach((el) => {
+        if (el) el.textContent = new Date().getFullYear();
+      });
 
       // Grafik Status Ranperda
       let chartPengusul, chartStatus;
@@ -1244,8 +1246,16 @@
         return { pengusul, status };
       };
       
-      // Inisialisasi grafik saat halaman dimuat
-      initializeCharts();
+      // Inisialisasi grafik saat halaman dimuat (cek ketersediaan elemen dan Chart.js)
+      if (typeof Chart !== 'undefined' && document.getElementById('chart-pengusul') && document.getElementById('chart-status')) {
+        try {
+          initializeCharts();
+        } catch (err) {
+          console.error('Gagal inisialisasi grafik:', err);
+        }
+      } else {
+        console.warn('Chart.js atau elemen canvas belum tersedia — grafik tidak diinisialisasi.');
+      }
       
       const pageFromHash = window.location.hash.replace('#', '');
       if (pageFromHash && document.getElementById(pageFromHash)) showPage(pageFromHash);
