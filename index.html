@@ -1043,6 +1043,54 @@
       let chartPengusul, chartStatus;
       
       const initializeCharts = () => {
+        // Mengumpulkan data dari tabel
+        const getChartData = (year) => {
+          const pageId = year === '2025' ? 'Informasi2025' : 'Informasi2026';
+          const page = document.getElementById(pageId);
+          if (!page) return { pengusul: {}, status: {} };
+          
+          const tableBody = page.querySelector('.ranperda-table-body');
+          if (!tableBody) return { pengusul: {}, status: {} };
+          
+          const rows = tableBody.querySelectorAll('tr');
+          const pengusul = { 'Pemerintah Daerah': 0, 'DPRD': 0 };
+          const status = { 'Perencanaan': 0, 'Pembahasan': 0, 'Persetujuan': 0, 'Penetapan': 0 };
+          
+          rows.forEach((row) => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length >= 4) {
+              // Kolom 3: Pengusul
+              const pengusulCell = cells[2].textContent.trim();
+              if (pengusulCell === 'Pemerintah Daerah') pengusul['Pemerintah Daerah']++;
+              else if (pengusulCell === 'DPRD') pengusul['DPRD']++;
+              
+              // Kolom 4: Status (data-progress)
+              const statusButton = cells[3].querySelector('.status-button');
+              if (statusButton) {
+                const progressStr = statusButton.dataset.progress || 'pending,pending,pending,pending';
+                const stages = progressStr.split(',');
+                
+                // Hitung status berdasarkan stages
+                let statusIndex = stages.length - 1;
+                for (let i = stages.length - 1; i >= 0; i--) {
+                  if (stages[i] !== 'done') {
+                    statusIndex = i;
+                    break;
+                  }
+                }
+                
+                if (statusIndex === 0) status['Perencanaan']++;
+                else if (statusIndex === 1) status['Pembahasan']++;
+                else if (statusIndex === 2) status['Persetujuan']++;
+                else if (statusIndex === 3) status['Penetapan']++;
+                else status['Penetapan']++; // Jika semua done
+              }
+            }
+          });
+          
+          return { pengusul, status };
+        };
+        
         // Inisialisasi Chart Pengusul (Pie Chart)
         const ctxPengusul = document.getElementById('chart-pengusul');
         if (chartPengusul) chartPengusul.destroy();
