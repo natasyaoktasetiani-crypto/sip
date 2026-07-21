@@ -489,6 +489,11 @@
             <p class="eyebrow eyebrow--blue">Pemantauan Progres Pembentukan Perda</p>
             <h1 id="informasi-title">Informasi Pembentukan Peraturan Daerah Tahun 2025</h1>
           </div>
+      
+          <div class="chart-controls" style="justify-content:flex-start; margin-bottom:12px;">
+            <button class="chart-btn" type="button" data-information-year="2025">2025</button>
+            <button class="chart-btn" type="button" data-information-year="2026">2026</button>
+          </div>
           <div class="ranperda-table-wrap">
             <div class="ranperda-search">
               <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
@@ -629,6 +634,11 @@
           <div class="page-title">
             <p class="eyebrow eyebrow--blue">Pemantauan Progres Pembentukan Perda</p>
             <h1 id="informasi-2026-title">Informasi Pembentukan Peraturan Daerah Tahun 2026</h1>
+          </div>
+      
+          <div class="chart-controls" style="justify-content:flex-start; margin-bottom:12px;">
+            <button class="chart-btn" type="button" data-information-year="2025">2025</button>
+            <button class="chart-btn" type="button" data-information-year="2026">2026</button>
           </div>
           <div class="ranperda-table-wrap">
             <div class="ranperda-search">
@@ -836,6 +846,13 @@
 
         if (mainNav) mainNav.classList.remove('open');
         if (navToggle) navToggle.setAttribute('aria-expanded', 'false');
+        // Sinkronkan tombol pilihan tahun saat berpindah halaman Informasi
+        document.querySelectorAll('[data-information-year]').forEach((btn) => {
+          if (pageId === 'Informasi2025') btn.classList.toggle('selected', btn.dataset.informationYear === '2025');
+          else if (pageId === 'Informasi2026') btn.classList.toggle('selected', btn.dataset.informationYear === '2026');
+          else btn.classList.remove('selected');
+        });
+
         window.scrollTo({ top: 0, behavior: 'smooth' });
       };
 
