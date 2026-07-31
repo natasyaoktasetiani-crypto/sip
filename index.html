@@ -178,7 +178,7 @@
       .meta { color: var(--muted); font-size: 13px; }
       .badge { display: inline-flex; align-items: center; padding: 7px 12px; border-radius: 999px; font-size: 12px; font-weight: 800; letter-spacing: .02em; text-transform: uppercase; }
       .badge-selesai { color: #0b6b3a; background: #e6f7ee; }
-      .stage-tracker-h { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+      .stage-tracker-h { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
       .stage-h { position: relative; padding-top: 8px; text-align: center; color: var(--muted); font-size: 12px; font-weight: 600; }
       .stage-h .node { display: grid; place-items: center; width: 34px; height: 34px; margin: 0 auto 10px; border-radius: 50%; background: #e5edf2; color: var(--muted); }
       .stage-h .node i { font-size: 13px; }
@@ -591,6 +591,7 @@
                       <button type="button" class="stage-selector-btn" data-stage="Penyusunan">Penyusunan</button>
                       <button type="button" class="stage-selector-btn" data-stage="Pembahasan">Pembahasan</button>
                       <button type="button" class="stage-selector-btn" data-stage="Penetapan">Penetapan</button>
+                      <button type="button" class="stage-selector-btn" data-stage="Pengundangan">Pengundangan</button>
                   </div>
                 </div>
                 <div class="stage-documents-grid"></div>
@@ -752,6 +753,7 @@
                       <button type="button" class="stage-selector-btn" data-stage="Penyusunan">Penyusunan</button>
                       <button type="button" class="stage-selector-btn" data-stage="Pembahasan">Pembahasan</button>
                       <button type="button" class="stage-selector-btn" data-stage="Penetapan">Penetapan</button>
+                      <button type="button" class="stage-selector-btn" data-stage="Pengundangan">Pengundangan</button>
                   </div>
                 </div>
                 <div class="stage-documents-grid"></div>
@@ -1102,20 +1104,30 @@
         }
       });
 
+      const stageLabels = ['Perencanaan', 'Penyusunan', 'Pembahasan', 'Penetapan', 'Pengundangan'];
+
+      const normalizeStages = (progressStr) => {
+        const stages = (progressStr || 'pending,pending,pending,pending,pending').split(',');
+        if (stages.length < stageLabels.length) {
+          return [...stages, ...Array(stageLabels.length - stages.length).fill('pending')];
+        }
+        return stages.slice(0, stageLabels.length);
+      };
+
       const renderProgressTracker = (trackerElement, stages) => {
         if (!trackerElement) return;
-        const activeIndex = stages.findIndex((state) => state !== 'done');
-        trackerElement.innerHTML = stages.map((state, index) => {
-          const labels = ['Perencanaan', 'Penyusunan', 'Pembahasan', 'Penetapan'];
+        const normalizedStages = normalizeStages(stages);
+        const activeIndex = normalizedStages.findIndex((state) => state !== 'done');
+        trackerElement.innerHTML = normalizedStages.map((state, index) => {
           let icon;
           if (state === 'done') icon = '<i class="fa-solid fa-check" aria-hidden="true"></i>';
-          else if (index === activeIndex) icon = '<i class="fa-solid fa-rotate-right" aria-hidden="true"></i>';
+          else if (index === (activeIndex === -1 ? normalizedStages.length - 1 : activeIndex)) icon = '<i class="fa-solid fa-rotate-right" aria-hidden="true"></i>';
           else icon = '<i class="fa-regular fa-circle" aria-hidden="true"></i>';
           return `
             <div class="stage-h ${state}">
               ${index > 0 ? '<span class="line"></span>' : ''}
               <span class="node">${icon}</span>
-              <span class="stage-label">${labels[index]}</span>
+              <span class="stage-label">${stageLabels[index]}</span>
             </div>
           `;
         }).join('');
@@ -1937,20 +1949,27 @@
             note: 'Surat keputusan penetapan Perda.',
             url: 'https://docs.google.com/document/d/example-sk/edit'
           }
+        ],
+        Pengundangan: [
+          {
+            label: 'Dokumen Pengundangan',
+            note: 'Berita acara dan dokumen pengundangan Perda.',
+            url: 'https://docs.google.com/document/d/example-undang/edit'
+          }
         ]
       };
 
       const getStageDocumentsForRanperda = (title) => {
-        return stageDocumentsByRanperda[title] || genericStageDocuments;
+        const specificDocuments = stageDocumentsByRanperda[title];
+        return specificDocuments ? { ...genericStageDocuments, ...specificDocuments } : genericStageDocuments;
       };
 
       const getStageLabel = (progressStr) => {
-        const labels = ['Perencanaan', 'Penyusunan', 'Pembahasan', 'Penetapan'];
-        const stages = (progressStr || 'pending,pending,pending,pending').split(',');
+        const stages = normalizeStages(progressStr);
         for (let i = 0; i < stages.length; i += 1) {
-          if (stages[i] !== 'done') return labels[i];
+          if (stages[i] !== 'done') return stageLabels[i];
         }
-        return 'Penetapan';
+        return stageLabels[stageLabels.length - 1];
       };
 
       const renderStageDocuments = (container, stage, title) => {
@@ -2051,7 +2070,7 @@
           
           const rows = tableBody.querySelectorAll('tr');
           const pengusul = { 'Pemerintah Daerah': 0, 'DPRD': 0 };
-          const status = { 'Perencanaan': 0, 'Penyusunan': 0, 'Pembahasan': 0, 'Penetapan': 0 };
+          const status = { 'Perencanaan': 0, 'Penyusunan': 0, 'Pembahasan': 0, 'Penetapan': 0, 'Pengundangan': 0 };
           
           rows.forEach((row) => {
             const cells = row.querySelectorAll('td');
@@ -2065,7 +2084,7 @@
               const statusButton = cells[3].querySelector('.status-button');
               if (statusButton) {
                 const progressStr = statusButton.dataset.progress || 'pending,pending,pending,pending';
-                const stages = progressStr.split(',');
+                const stages = normalizeStages(progressStr);
                 
                 // Hitung status berdasarkan stages
                 let statusIndex = stages.length - 1;
@@ -2080,7 +2099,8 @@
                 else if (statusIndex === 1) status['Penyusunan']++;
                 else if (statusIndex === 2) status['Pembahasan']++;
                 else if (statusIndex === 3) status['Penetapan']++;
-                else status['Penetapan']++; // Jika semua done
+                else if (statusIndex === 4) status['Pengundangan']++;
+                else status['Pengundangan']++; // Jika semua done
               }
             }
           });
@@ -2127,7 +2147,7 @@
         chartStatus = new Chart(ctxStatus, {
           type: 'bar',
           data: {
-            labels: ['Perencanaan', 'Penyusunan', 'Pembahasan', 'Penetapan'],
+            labels: ['Perencanaan', 'Penyusunan', 'Pembahasan', 'Penetapan', 'Pengundangan'],
             datasets: [{
               label: 'Jumlah Ranperda',
               data: [
