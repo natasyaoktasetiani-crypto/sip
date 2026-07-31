@@ -923,10 +923,11 @@
     </footer>
 
     <script>
-      const pages = document.querySelectorAll('.page');
-      const pageLinks = document.querySelectorAll('[data-page-link]');
-      const mainNav = document.querySelector('.main-nav');
-      const navToggle = document.querySelector('.nav-toggle');
+      document.addEventListener('DOMContentLoaded', () => {
+        const pages = document.querySelectorAll('.page');
+        const pageLinks = document.querySelectorAll('[data-page-link]');
+        const mainNav = document.querySelector('.main-nav');
+        const navToggle = document.querySelector('.nav-toggle');
 
       const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzS0RvXE4flV2xpzSdBY2vvuClQoND9kdNgcsXTh6C_6VUkEdMQ8aWxHnWLX-WWGxf9/exec';
 
@@ -970,7 +971,8 @@
       });
 
       document.querySelectorAll('[data-go-to]').forEach((button) => {
-        button.addEventListener('click', () => {
+        button.addEventListener('click', (event) => {
+          event.preventDefault();
           const pageId = button.dataset.goTo;
           history.replaceState(null, '', `#${pageId}`);
           showPage(pageId);
@@ -2245,6 +2247,7 @@
       const pageFromHash = window.location.hash.replace('#', '');
       if (pageFromHash && document.getElementById(pageFromHash)) showPage(pageFromHash);
       else showPage('beranda');
+    });
     </script>
   </body>
 </html>
